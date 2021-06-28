@@ -1,2 +1,0 @@
-class Muse(object):
-    pass
