@@ -99,8 +99,10 @@ class CGX:
         self.loop.run_until_complete(self.client.read_gatt_char('2456E1B9-26E2-8F83-E744-F34F01E9D703'))
 
     def clearPackets(self):
+        numPackets = len(self.packets)
         self.packets=[]
         self.itr=0
+        return numPackets
 
     def getBattery(self):
         if len(self.packets) == 0:

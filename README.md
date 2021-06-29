@@ -2,8 +2,8 @@
 
 A python library to assist developers with CGX EEG dev-kit.
 
-##Installation
+## Installation
     pip install CGXAssist
     
-##Usage
+## Usage
 See [examples.py](https://github.com/bardiabarabadi/CGXAssist/blob/master/examples.py)
