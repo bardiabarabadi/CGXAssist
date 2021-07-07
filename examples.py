@@ -18,10 +18,12 @@ time.sleep(5)  # Wait for 5 seconds
 device.refresh()
 print("Packets in the past 5 seconds:\n" + str(device.packets))
 
+device.decodePackets()
+
 packetRate = np.zeros([200,1])
 elapsedTimes = np.zeros([200,1])
 
-for i in range(200):
+for i in range(2):
     start = timer() # Start timer
 
     device.refresh() # reads a new set of packets from the device
@@ -30,6 +32,7 @@ for i in range(200):
 
 
     # print("Packets in the past 0.2 seconds:\n" + str(device.packets)) # Uncnomment to print the packets
+
 
     packetRate[i] = device.clearPackets() # This is to clear the locally saved packets. Frees up space and improves performance
     end = timer()

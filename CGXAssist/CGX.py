@@ -32,6 +32,11 @@ class CGX:
             self.loop = loop
 
         self.packets=[]
+        self.lastPacketCounter = -1
+        self.lostPackets = 0
+
+        self.decodedPackets = []
+
 
     def disconnect(self):
         self.loop.run_until_complete(self.client.disconnect())
@@ -103,6 +108,28 @@ class CGX:
         self.packets=[]
         self.itr=0
         return numPackets
+
+    def decodePackets(self):
+
+        for i, p in enumerate(self.packets):
+            decodedPacket = np.zeros([CGX_CHANNEL_COUNT,1])
+            for channel in range(CGX_CHANNEL_COUNT):
+                hexPayload = self.packets[i][2*(CGX_HEADER_LENGTH_BYTES+1+3*channel):
+                                             2*(CGX_HEADER_LENGTH_BYTES+1+3*(channel+1))]
+                msb  = int(hexPayload[0:2],16)
+                lsb1 = int(hexPayload[2:4],16)
+                lsb2 = int(hexPayload[4:6],16)
+
+                decodedPacket[channel]= 2**8 * (msb    * 2**18
+                                                + lsb1 * 2**11
+                                                + lsb2 * 2**4
+                                                )
+            self.decodedPackets.append(decodedPacket)
+        return self.decodedPackets
+
+
+
+
 
     def getBattery(self):
         if len(self.packets) == 0:
