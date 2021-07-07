@@ -104,6 +104,7 @@ class CGX:
         self.loop.run_until_complete(self.client.read_gatt_char('2456E1B9-26E2-8F83-E744-F34F01E9D703'))
 
     def clearPackets(self):
+        self.decodedPackets = []
         numPackets = len(self.packets)
         self.packets=[]
         self.itr=0
@@ -113,6 +114,21 @@ class CGX:
 
         for i, p in enumerate(self.packets):
             decodedPacket = np.zeros([CGX_CHANNEL_COUNT,1])
+            counter = int(self.packets[i][0:2*CGX_HEADER_LENGTH_BYTES], 16)
+
+            if self.lastPacketCounter == -1:
+                pass
+            else:
+                if (counter-self.lastPacketCounter) == 1 or (counter-self.lastPacketCounter) == -127:
+                    pass
+                else:
+                    if counter > self.lastPacketCounter:
+                        self.lostPackets = self.lostPackets + (counter-self.lastPacketCounter-1)
+                    else:
+                        self.lostPackets = self.lostPackets + (127 + counter - self.lastPacketCounter - 1)
+
+            self.lastPacketCounter = counter
+
             for channel in range(CGX_CHANNEL_COUNT):
                 hexPayload = self.packets[i][2*(CGX_HEADER_LENGTH_BYTES+1+3*channel):
                                              2*(CGX_HEADER_LENGTH_BYTES+1+3*(channel+1))]
