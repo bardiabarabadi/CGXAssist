@@ -1,44 +1,33 @@
 import time
-import numpy as np
+
 from CGXAssist.CGX import CGX
-from timeit import default_timer as timer
 
-# Create an object from CGX class
-device = CGX(timeout=20)
-success = device.connect(targetName="NINA-B1-820A11")  # Search for a specific CGX kit device
+if __name__ == '__main__':
+    deviceName = "NINA-B1-820A11"
 
-if not success:
-    exit(0)  # Exit if not found
+    # Create an object from CGX class
+    device = CGX(timeout=20)  # This timeout is used for searching and locating a device
+    success = device.connect(targetName=deviceName)  # Search for a specific CGX kit device
 
-batt = device.getBattery()  # Extract battery info
-print("Device battery: " + str(batt))  # Print battery info
+    if not success:
+        exit(0)  # Exit if not found
 
-device.clearPackets()  # Clear all packets from device memory
-time.sleep(5)  # Wait for 5 seconds
-device.refresh()
-print("Packets in the past 5 seconds:\n" + str(device.packets))
+    batt = device.getBattery()  # Extract battery info
+    print("Device battery: " + str(batt))  # Print battery info
 
-device.decodePackets()
+    device.clearPackets()  # Clear all packets
+    time.sleep(10)  # Wait for 1 second for some packets to arrive
+    device.refresh()  # This function transfers the packets from the device buffer to python
+    print("RAW packets in the past second:\n" + str(
+        device.packets))  # RAW packets are available for debugging purposes in device.packets
 
-packetRate = np.zeros([200,1])
-elapsedTimes = np.zeros([200,1])
+    channelContent = device.getChannel(3)
 
-for i in range(2):
-    start = timer() # Start timer
+    print(channelContent)
 
-    device.refresh() # reads a new set of packets from the device
-                     # In this function we read all the packets in the buffer of the device and store it
-                     # locally (access via device.packets)
-
-
-    # print("Packets in the past 0.2 seconds:\n" + str(device.packets)) # Uncnomment to print the packets
+    print("Lost " + str(device.lostPackets) +
+    " packets out of " + str(channelContent.shape[0]) + ", i.e " + str(
+        100 * (device.lostPackets/(device.lostPackets+channelContent.shape[0]))) + "%")
 
 
-    packetRate[i] = device.clearPackets() # This is to clear the locally saved packets. Frees up space and improves performance
-    end = timer()
-    elapsedTimes[i] = end - start # Elsapsed time from start to end
-    time.sleep(0.2-elapsedTimes[i][0]) # wait for 0.2 - elapsedTime, i.e. the time spent from "start" to "end"
-
-print ("Mean packet rate: " + str(np.mean(packetRate)))
-print ("Mean elapsed time: " + str(np.mean(elapsedTimes)))
-device.disconnect()
+    device.disconnect()

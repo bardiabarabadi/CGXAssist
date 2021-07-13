@@ -37,6 +37,8 @@ class CGX:
 
         self.decodedPackets = []
 
+        self.samples = None
+
 
     def disconnect(self):
         self.loop.run_until_complete(self.client.disconnect())
@@ -102,12 +104,17 @@ class CGX:
 
     def refresh(self):
         self.loop.run_until_complete(self.client.read_gatt_char('2456E1B9-26E2-8F83-E744-F34F01E9D703'))
+        self.decodePackets()
 
-    def clearPackets(self):
+    def clearPackets(self, numSamplesToKeep=-1):
         self.decodedPackets = []
         numPackets = len(self.packets)
-        self.packets=[]
-        self.itr=0
+
+        if numSamplesToKeep == -1:
+            pass
+        else:
+            self.packets=[]
+            self.itr=0
         return numPackets
 
     def decodePackets(self):
@@ -116,7 +123,7 @@ class CGX:
             decodedPacket = np.zeros([CGX_CHANNEL_COUNT,1])
             counter = int(self.packets[i][0:2*CGX_HEADER_LENGTH_BYTES], 16)
 
-            if self.lastPacketCounter == -1:
+            if self.lastPacketCounter == -1 or self.lastPacketCounter == counter:
                 pass
             else:
                 if (counter-self.lastPacketCounter) == 1 or (counter-self.lastPacketCounter) == -127:
@@ -127,6 +134,9 @@ class CGX:
                     else:
                         self.lostPackets = self.lostPackets + (127 + counter - self.lastPacketCounter - 1)
 
+
+            if len(p) != 2*(CGX_HEADER_LENGTH_BYTES+CGX_PAYLOAD_LENGTH_BYTES+CGX_TAIL_LENGTH_BYTES):
+                continue
             self.lastPacketCounter = counter
 
             for channel in range(CGX_CHANNEL_COUNT):
@@ -141,11 +151,19 @@ class CGX:
                                                 + lsb2 * 2**4
                                                 )
             self.decodedPackets.append(decodedPacket)
-        return self.decodedPackets
+        self.samples=np.squeeze(np.array(self.decodedPackets))
 
 
+    def pullSamples(self):
+        self.refresh()
+        self.decodePackets()
+        return self.samples
 
-
+    def getChannel(self, channel=0):
+        if channel > CGX_CHANNEL_COUNT:
+            return -1
+        else:
+            return self.samples[:,channel]
 
     def getBattery(self):
         if len(self.packets) == 0:
