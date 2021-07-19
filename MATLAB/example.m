@@ -1,7 +1,7 @@
 
 clear
 
-cgx = CGXAssist("EFB8D9CA-6D9E-4C6F-BFF0-C7EF3A5DCDDC");
+cgx = CGXAssist("NINA-B1-820A11");
 cgx = cgx.findAndConnect();
 
 % Start reading from the device

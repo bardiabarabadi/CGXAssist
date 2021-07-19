@@ -20,7 +20,7 @@ classdef CGXAssist
         
         function obj = findAndConnect(obj)
             blelist
-            obj.deviceBleObj=ble("NINA-B1-820A11");
+            obj.deviceBleObj=ble(obj.targetName);
             obj.deviceBleChar=characteristic(obj.deviceBleObj, ...
                        "2456E1B9-26E2-8F83-E744-F34F01E9D701", ...
                        "2456E1B9-26E2-8F83-E744-F34F01E9D703");
@@ -57,14 +57,14 @@ classdef CGXAssist
         end
         
         
-        function [batt, obj] = getBattery(obj)
+        function [batt] = getBattery(obj)
             
             while obj.allRawDataCell.isempty()
                 disp("waiting for packets to calculate battery");
                 obj.startStream();
                 pause(1);
                 obj.stopStream();
-                obj=obj.refresh();
+                obj.refresh();
             end
             
             lastSyncByteLocation = find(obj.allRawDataArray==255,1,'last');
