@@ -10,12 +10,31 @@ classdef CGXAssist
         allRawDataArray
     end
     
+    methods(Static)
+        function [batt] = getBattery(dev)
+            
+            while dev.allRawDataCell.isempty()
+                disp("waiting for packets to calculate battery");
+                dev.startStream();
+                pause(1);
+                dev.stopStream();
+                whos
+                dev=dev.refresh();
+                whos
+            end
+            
+            lastSyncByteLocation = find(dev.allRawDataArray==255,1,'last');
+            lastBattByteLocation = lastSyncByteLocation - 3;
+            batt = 100*double(dev.allRawDataArray(lastBattByteLocation))...
+                      /128.0;
+        end
+    end
+    
     methods
         function obj = CGXAssist(targetName)
             %CGXASSIST Construct an instance of this class
             obj.targetName = targetName;
             obj.allRawDataCell = CStack();
-            allRawDataArray = 0;
         end
         
         function obj = findAndConnect(obj)
@@ -48,30 +67,14 @@ classdef CGXAssist
             for i=1:size(data,2)
                 obj.allRawDataCell.push(uint8(data(i)));
             end
-            disp("Got Value");
         end
         
         function obj = clearPackets(obj)
-            obj.allRawDataArray = 0;
             obj.allRawDataCell = CStack();
         end
         
         
-        function [batt] = getBattery(obj)
-            
-            while obj.allRawDataCell.isempty()
-                disp("waiting for packets to calculate battery");
-                obj.startStream();
-                pause(1);
-                obj.stopStream();
-                obj.refresh();
-            end
-            
-            lastSyncByteLocation = find(obj.allRawDataArray==255,1,'last');
-            lastBattByteLocation = lastSyncByteLocation - 3;
-            batt = 100*double(obj.allRawDataArray(lastBattByteLocation))...
-                      /128.0;
-        end
+        
     end
 end
 
