@@ -48,16 +48,29 @@ classdef CGXAssist
             for i=1:size(data,2)
                 obj.allRawDataCell.push(uint8(data(i)));
             end
+            disp("Got Value");
         end
         
-        function clearPackets(obj)
+        function obj = clearPackets(obj)
             obj.allRawDataArray = 0;
             obj.allRawDataCell = CStack();
         end
         
         
-        function batt = getBattery(obj)
-            batt = 0;
+        function [batt, obj] = getBattery(obj)
+            
+            while obj.allRawDataCell.isempty()
+                disp("waiting for packets to calculate battery");
+                obj.startStream();
+                pause(1);
+                obj.stopStream();
+                obj=obj.refresh();
+            end
+            
+            lastSyncByteLocation = find(obj.allRawDataArray==255,1,'last');
+            lastBattByteLocation = lastSyncByteLocation - 3;
+            batt = 100*double(obj.allRawDataArray(lastBattByteLocation))...
+                      /128.0;
         end
     end
 end
