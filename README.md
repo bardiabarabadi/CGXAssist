@@ -1,6 +1,8 @@
 # CGXAssist
 
-A python library to assist developers with CGX EEG dev-kit.
+> **Status: unmaintained.** This is an early alpha (0.0.0.dev0) that is no longer developed. It was written against the 2021 `bleak` API and does not work with current `bleak` releases without changes.
+
+A python library to assist developers with CGX EEG dev-kit. It connects to the dev-kit's Bluetooth LE module and decodes the received packets; a MATLAB wrapper is in `MATLAB/`.
 
 ## Installation
     pip install CGXAssist
